@@ -1,0 +1,23 @@
+{
+  "name": "zulphaproject_assesment",
+  "version": "1.0.0",
+  "description": "An Individual Project",
+  "main": "index.js",
+  "git repository": "https://github.com/Milihano/Session-Booking-Zulpha-Individual-Project-.git",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mujib",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.1",
+    "joi": "^17.6.2",
+    "mysql2": "^2.3.3",
+    "nodemon": "^2.0.20",
+    "uuid": "^9.0.0"
+  }
+}
