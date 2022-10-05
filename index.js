@@ -3,8 +3,9 @@ const express = require('express')
 const bodyparser = require('body-parser')
 const Joi = require('joi')
 const app = express()
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const port = 7000
+const { v4: uuidv4 } = require('uuid');
 app.use(bodyparser.json())
 // console.log(process.env)
 app.listen(port)
@@ -24,14 +25,20 @@ connection.connect();
 app.post('/addingtosessionbooking',(req,res)=>{
     const {firstname,othernames,email,phone,booking_date,bookingtime_range} = req.body
 
-    const schema = Joi.object().keys({
-        firstname: Joi.string().alphanum().min(3).max(30).required(),
-        othernames: Joi.string().alphanum().min(3).max(30).required(),
-        email: Joi.string().email({ minDomainAtoms: 2 }),
-        phone: Joi.string().alphanum().min(3).max(30).required(),
-        date:Joi.date().required(),
-        bookingtime_range:Joi.time().required()
+    const schema = Joi.object({
+        firstname: Joi.string().min(3).max(30).required(),
+        othernames: Joi.string().min(3).max(30).required(),
+        email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
+        phone: Joi.string().min(3).max(30).required(),
     })
+
+    const{error, value}= schema.validate(req.body)
+    if (error != undefined) {
+        res.status(400).send({
+            status:false,
+            message: error.detail[0].message
+        })
+    }
 
 
 
