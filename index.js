@@ -8,7 +8,9 @@ const port = 7000
 const { v4: uuidv4 } = require('uuid');
 app.use(bodyparser.json())
 // console.log(process.env)
-app.listen(port)
+app.listen(port, ()=>{
+    console.log(`Now Listening On ${port}`)
+})
 
 
 
@@ -16,7 +18,8 @@ const connection = mysql.createConnection({
     host     : process.env.DATABASE_HOST,
     user     : process.env.DATABASE_USER,
     port:process.env.DATABASE_PORT,
-    database : process.env.DATABASE_NAME
+    database : process.env.DATABASE_NAME,
+    port: process.env.APP_PORT
 });
   
 connection.connect();
@@ -30,26 +33,29 @@ app.post('/addingtosessionbooking',(req,res)=>{
         othernames: Joi.string().min(3).max(30).required(),
         email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
         phone: Joi.string().min(3).max(30).required(),
+        date:Joi.string().required(),
+        bookingtime_range:Joi.string().required()
     })
 
+
+try {
     const{error, value}= schema.validate(req.body)
-    if (error != undefined) {
-        res.status(400).send({
-            status:false,
-            message: error.detail[0].message
-        })
+    console.log("The Error:", error)
+    
+    if (error) {
+        throw new Error ("Bad request")
     }
 
 
 
-    connection.query(`SELECT * from customers where bookingtime_range='${bookingtime_range}' and booking_date= '${booking_date}'`,
+    connection.query(`SELECT * from customers where bookingtime_range='${bookingtime_range}' and bookingdate= '${booking_date}'`,
     (error, results, fields) => {
         if (error) {
             console.log("here1: " , error)
-            res.status(500).json( { message: 'An error occured' } )
+            throw new Error("An Error Occured")
         }
         if(results.length > 0) {
-            res.status(400).json( { message: 'Sorry, A Patient Already Has An Appointment' } )
+            throw new Error("Sorry, A Patient Already Has An Appointment")
         }
 
         let customer_id = uuidv4()
@@ -60,11 +66,23 @@ app.post('/addingtosessionbooking',(req,res)=>{
 
                 if (error) {
                     console.log("here2: " , error)
-                    res.status(500).json( { message: 'An error occured' } )
+                    throw new Error ("Bad Requesttttt")
                 }
-                res.status(201).json( { message: 'Appointment Secured' } )
+
+                if (results) {
+                    res.status(201).json( { message: 'Appointment Secured', data: results } )  
+                }       
         }
     });
+
+    
+} catch (error) {
+    console.log("i got here", error)
+    res.status(400).send({
+        status:false,
+        message: error.message || "Hello Sir E No Dey Work"
+    })
+}
           
     connection.end();
 
