@@ -17,23 +17,26 @@ app.listen(port, ()=>{
 const connection = mysql.createConnection({
     host     : process.env.DATABASE_HOST,
     user     : process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
     port:process.env.DATABASE_PORT,
-    database : process.env.DATABASE_NAME,
-    port: process.env.APP_PORT
+    database : process.env.DATABASE_NAME
 });
   
-connection.connect();
+
+//connection.connect()
 
 
-app.post('/addingtosessionbooking',(req,res)=>{
+app.post('/addingtosessionbooking', (req,res)=>{
     const {firstname,othernames,email,phone} = req.body
+
+
 
     const schema = Joi.object({
         firstname: Joi.string().min(3).max(30).required(),
         othernames: Joi.string().min(3).max(30).required(),
         email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
-        phone: Joi.string().min(3).max(30).required(),
-        gender: Joi.string().valid(Object.values('male','female'))
+        phone: Joi.string().min(3).max(13).required(),
+        gender: Joi.string().valid('male', 'female')
     })
 
 
@@ -59,8 +62,7 @@ app.post('/addingtosessionbooking',(req,res)=>{
     
             let customer_id = uuidv4()
             
-            connection.query(`INSERT INTO customers (customer_id, firstname, othernames, phone, email, bookingtime_range) 
-                VALUES ('${customer_id}','${firstname}', '${othernames}', '${phone}', '${email}', '${bookingtime_range}'`),
+            connection.query(`INSERT INTO customers (customer_id, firstname, othernames, phone, email) VALUES ('${customer_id}','${firstname}', '${othernames}', '${phone}', '${email}')`),
                 (error, results, fields) => { 
     
                     if (error) {
@@ -68,9 +70,9 @@ app.post('/addingtosessionbooking',(req,res)=>{
                         throw new Error ("Bad Requesttttt")
                     }
     
-                    if (results) {
-                        res.status(201).json( { message: 'Appointment Secured', data: results } )  
-                    }       
+                    connection.end();
+                    res.status(201).json( { message: 'Appointment Secured', data: results } )  
+                          
             }
         });
     
@@ -83,10 +85,9 @@ app.post('/addingtosessionbooking',(req,res)=>{
         })
     }
               
-    connection.end();
+
 
 })
-
 
 
 
